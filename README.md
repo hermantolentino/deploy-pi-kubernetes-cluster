@@ -3,7 +3,7 @@
 ## Work in progress...
 
 ## Initial steps
-1. Download Raspberry Pi imager (balenaEther or Raspberry Pi imager)
+1. Download Raspberry Pi imager (balenaEtcher or Raspberry Pi imager)
 2. Write `64-bit Ubuntu 20.04 LTS` image onto micro-SD card(s)
 3. Edit `user-data` files in micro-SD cards
 4. Generate SSH key pair with `generate-ssh-key-pair.sh` (This creates private and public keys in your Linux home `.ssh` folder. The configuration script will upload SSH public key to RPi4s.)
