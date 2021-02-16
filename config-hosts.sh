@@ -22,11 +22,13 @@ for host in $(cat hosts); do
    echo "Setting hostname for host: $host"
    if [ $host == $MASTER_NODE_IP ]; then
       sshpass -e ssh ubuntu@${host} 'echo "k8s-master" > /home/ubuntu/nodes/hostname'
+      sshpass -e ssh ubuntu@${host} 'sudo hostname k8s-master'
       sshpass -e ssh ubuntu@${host} 'sudo cp /home/ubuntu/nodes/hostname /etc/hostname'
    else
       ((WORKER_COUNTER++))
       printf -v WORKER '%03d' $WORKER_COUNTER
       sshpass -e ssh ubuntu@${host} "echo 'k8s-master-$WORKER' > /home/ubuntu/nodes/hostname"
+      sshpass -e ssh ubuntu@${host} "sudo hostname k8s-master-$WORKER"
       sshpass -e ssh ubuntu@${host} 'sudo cp /home/ubuntu/nodes/hostname /etc/hostname'
    fi
 done
@@ -43,6 +45,12 @@ for host in $(cat hosts); do
 done
 
 for host in $(cat hosts); do
+   echo "Rebooting: $host"
+   sshpass -e ssh ubuntu@${host} 'sudo reboot'
+done
+sleep 3m
+
+for host in $(cat hosts); do
    echo "Installing packages to $host..."
    sshpass -e ssh ubuntu@${host} '/home/ubuntu/nodes/install-node-packages.sh'
 done
@@ -56,7 +64,7 @@ for host in $(cat hosts); do
 done
 
 for host in $(cat hosts); do
-   echo "Rebooting (2): $host"
+   echo "Rebooting: $host"
    sshpass -e ssh ubuntu@${host} 'sudo reboot'
 done
 sleep 3m

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 uname -a
-echo 'hostname:' hostname
+echo "hostname: $(hostname)"
 echo 'authorized_keys:'
 cat /home/ubuntu/.ssh/authorized_keys
 sudo -- sh -c "cat /dev/null > /boot/firmware/cmdline.txt"

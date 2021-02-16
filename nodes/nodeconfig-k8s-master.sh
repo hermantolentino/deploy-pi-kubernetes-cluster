@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
-source .env
+source /home/ubuntu/nodes/.env
+
 sudo cp /home/ubuntu/nodes/k8s.conf /etc/sysctl.d/k8s.conf
 sudo sysctl --system
 KUBE_TOKEN=$(cat /home/ubuntu/nodes/kube-token)
