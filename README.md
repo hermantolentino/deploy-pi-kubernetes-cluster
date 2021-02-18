@@ -2,6 +2,12 @@
 
 ## Work in progress...
 
+## Hardware
+1. At least 2 Raspberry Pi 4 (RPi4) single board computers with 4GB memory
+2. 64GB micro-SD cards for RPi4's
+3. 4-port network switch, 1-foot Cat6 patch cables
+4. Computer running Ubuntu Linux (setup machine) with SD card reader (connected to the same network as RPi4's)
+
 ## Initial steps
 1. Download Raspberry Pi imager (balenaEtcher or Raspberry Pi imager)
 2. Write `64-bit Ubuntu 20.04 LTS` image onto micro-SD card(s)
@@ -27,5 +33,7 @@ ssh_pwauth: true
   e. Configures network
   f. Configures k8s master and worker nodes and joins worker node(s) to master node.
 
-Checks:
-1. `kubectl cluster-info`: Provides info on running clusters
+Checks on completion (on master node):
+1. If successful, you should be able to SSH into the k8s master node without a password from the setup machine.
+2. `kubectl get nodes` should show k8s cluster ready for use
+3. `kubectl cluster-info` provides info on running clusters
