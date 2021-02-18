@@ -29,13 +29,15 @@ ssh_pwauth: true
 9. Write IP addresses in `hosts` file, one IP address per line (use `hosts-template` as template) and pick which one you want to be the k8s master node. (Note this down for the `.env` below.)
 10. On setup machine, edit `.env` file (use `.env-template` as template) and add key info, including IP address of master node.
 11. On setup machine, Run `change-host-passwords.sh` to update default Ubuntu passwords on RPi4's
-12. Run `config-hosts.sh` to configure RPi4's. `config-hosts.sh` sets up each RPi4:
-  a. Updates hostnames to identify master and worker nodes
-  b. Installs SSH public key
-  c. Copies (using `scp`)`nodes` folder contents to RPi4s
-  d. Installs packages (docker, k8s, Python packages)
-  e. Configures network
-  f. Configures k8s master and worker nodes and joins worker node(s) to master node.  
+12. Run configuration script, `config-hosts.sh`, to configure RPi4's. `config-hosts.sh` sets up each RPi4.
+
+`config-hosts.sh`:
+1. Updates hostnames to identify master and worker nodes
+2. Installs SSH public key to each RPi4
+3. Copies (using `scp`) setup machine `nodes` folder contents to RPi4s
+4. Installs packages (docker, k8s, Python packages)
+5. Configures network for RPi4's
+6. Configures k8s master and worker nodes and joins worker node(s) to master node.
 
 Checks on completion (on master node):
 1. If successful, you should be able to SSH into the k8s master node without a password from the setup machine.
