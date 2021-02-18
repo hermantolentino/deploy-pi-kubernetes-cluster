@@ -21,11 +21,15 @@ chpasswd:
  # Enable password authentication with the SSH daemon
 ssh_pwauth: true
 ```
-4. Generate SSH key pair with `generate-ssh-key-pair.sh` (This creates private and public keys in your Linux home `.ssh` folder. The configuration script will upload SSH public key to RPi4s.)
-5. Insert micro-SD cards and boot up RPi4s. Using `ip address show` at the command line, get IP addresses of RPi4s. Write IP addresses in `hosts` file, one IP address per line (use `hosts-template` as template) and pick which one you want to be the k8s master node. (Note this down for the `.env` below.)
-6. Edit `.env` file (use `.env-template` as template) and add key info, including IP address of master node.
-7. Run `change-host-passwords.sh` to update default Ubuntu passwords
-8. Run `config-hosts.sh` to configure RPi4's. `config-hosts.sh` sets up each RPi4:
+4. Git clone this repository on setup machine, then `cd` to the repository folder.
+5. Generate SSH key pair with `generate-ssh-key-pair.sh` (This creates private and public keys in your Linux home `.ssh` folder. The configuration script will upload SSH public key to RPi4s.)
+6. Insert micro-SD cards and boot up RPi4s.
+7. On setup machine, create a `hosts` file using `hosts-template`.
+8. Log in to each RPi4, and using `ip address show` at the command line, get `eth0` IP addresses of RPi4s.
+9. Write IP addresses in `hosts` file, one IP address per line (use `hosts-template` as template) and pick which one you want to be the k8s master node. (Note this down for the `.env` below.)
+10. On setup machine, edit `.env` file (use `.env-template` as template) and add key info, including IP address of master node.
+11. On setup machine, Run `change-host-passwords.sh` to update default Ubuntu passwords on RPi4's
+12. Run `config-hosts.sh` to configure RPi4's. `config-hosts.sh` sets up each RPi4:
   a. Updates hostnames to identify master and worker nodes
   b. Installs SSH public key
   c. Copies (using `scp`)`nodes` folder contents to RPi4s
