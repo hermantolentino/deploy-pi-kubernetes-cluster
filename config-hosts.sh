@@ -9,79 +9,105 @@ fi
 
 IFS=$'\n'       # make newlines the only separator, IFS means 'internal field separator'
 set -f          # disable globbing
-for host in $(cat hosts); do
-  echo "Logging in for the first time to $host..."
-  # Use -oStrictHostKeyChecking=no to automatically accept host keys when
-  #   logging in for the first time...
-  sshpass -e ssh -oStrictHostKeyChecking=no ubuntu@${host} 'uptime'
+for line in $(cat hosts); do
+   ipaddress=$(echo $line | cut -d"," -f1)
+   role=$(echo $line | cut -d"," -f2)
+   echo "Logging in for the first time to $ipaddress..."
+   ipaddress=$(echo $line | cut -d"," -f1)
+   role=$(echo $line | cut -d"," -f2)
+   # Remove host ip address from known_hosts in set up machine
+   ssh-keygen -f "/home/${USERNAME}/.ssh/known_hosts" -R $ipaddress
+   # Use -oStrictHostKeyChecking=no to automatically accept host keys when
+   #   (assume) logging in for the first time...
+   sshpass -e ssh -oStrictHostKeyChecking=no ubuntu@${ipaddress} 'uptime'
 done
 
 WORKER_COUNTER=0
-for host in $(cat hosts); do
-   echo "Processing host, stage 1: $host"
-   echo "Setting hostname for host: $host"
-   if [ $host == $MASTER_NODE_IP ]; then
-      sshpass -e ssh ubuntu@${host} 'echo "k8s-master" > /home/ubuntu/nodes/hostname'
-      sshpass -e ssh ubuntu@${host} 'sudo hostname k8s-master'
-      sshpass -e ssh ubuntu@${host} 'sudo cp /home/ubuntu/nodes/hostname /etc/hostname'
+MASTER_COUNTER=0
+for line in $(cat hosts); do
+   ipaddress=$(echo $line | cut -d"," -f1)
+   role=$(echo $line | cut -d"," -f2)
+
+   echo "Processing host, stage 1: $ipaddress"
+   echo "Setting hostname for host: $ipaddress"
+   sshpass -e ssh ubuntu@${ipaddress} "touch /home/ubuntu/nodes/hostname"
+   if [ $role == 'master' ]; then
+      ((MASTER_COUNTER++))
+      printf -v MASTER '%03d' $MASTER_COUNTER
+      sshpass -e ssh ubuntu@${ipaddress} "echo 'k8s-master-$MASTER' > /home/ubuntu/nodes/hostname"
+      sshpass -e ssh ubuntu@${ipaddress} "sudo hostname k8s-master-$MASTER"
+      sshpass -e ssh ubuntu@${ipaddress} 'sudo cp /home/ubuntu/nodes/hostname /etc/hostname'
    else
       ((WORKER_COUNTER++))
       printf -v WORKER '%03d' $WORKER_COUNTER
-      sshpass -e ssh ubuntu@${host} "echo 'k8s-master-$WORKER' > /home/ubuntu/nodes/hostname"
-      sshpass -e ssh ubuntu@${host} "sudo hostname k8s-master-$WORKER"
-      sshpass -e ssh ubuntu@${host} 'sudo cp /home/ubuntu/nodes/hostname /etc/hostname'
+      sshpass -e ssh ubuntu@${ipaddress} "echo 'k8s-worker-$WORKER' > /home/ubuntu/nodes/hostname"
+      sshpass -e ssh ubuntu@${ipaddress} "sudo hostname k8s-worker-$WORKER"
+      sshpass -e ssh ubuntu@${ipaddress} 'sudo cp /home/ubuntu/nodes/hostname /etc/hostname'
    fi
 done
 
-for host in $(cat hosts); do
-   echo "Installing SSH public keys in host: $host"
-   sshpass -e ssh -y ubuntu@${host} ':> /home/ubuntu/.ssh/authorized_keys'
-   sshpass -e ssh-copy-id -i ${KEYFILENAME} ubuntu@${host}
-   echo "Copying nodes folder and .env to $host..."
-   sshpass -e ssh ubuntu@${host} 'mkdir -p /home/ubuntu/nodes'
-   sshpass -e scp -r $(pwd)/nodes ubuntu@${host}:/home/ubuntu/
-   sshpass -e scp $(pwd)/.env ubuntu@${host}:/home/ubuntu/nodes/.env
-   sshpass -e ssh ubuntu@${host} 'ls -la /home/ubuntu/nodes'
+for line in $(cat hosts); do
+   ipaddress=$(echo $line | cut -d"," -f1)
+   role=$(echo $line | cut -d"," -f2)
+
+   echo "Installing SSH public keys in host: $ipaddress"
+   sshpass -e ssh -y ubuntu@${ipaddress} ':> /home/ubuntu/.ssh/authorized_keys'
+   sshpass -e ssh-copy-id -i ${KEYFILENAME} ubuntu@${ipaddress}
+   echo "Copying nodes folder and .env to $ipaddress..."
+   sshpass -e ssh ubuntu@${ipaddress} 'mkdir -p /home/ubuntu/nodes'
+   sshpass -e scp -r $(pwd)/nodes ubuntu@${ipaddress}:/home/ubuntu/
+   sshpass -e scp $(pwd)/.env ubuntu@${ipaddress}:/home/ubuntu/nodes/.env
+   sshpass -e ssh ubuntu@${ipaddress} 'ls -la /home/ubuntu/nodes'
 done
 
-for host in $(cat hosts); do
-   echo "Rebooting: $host"
-   sshpass -e ssh ubuntu@${host} 'sudo reboot'
-done
-sleep 3m
-
-for host in $(cat hosts); do
-   echo "Installing packages to $host..."
-   sshpass -e ssh ubuntu@${host} '/home/ubuntu/nodes/install-node-packages.sh'
-done
-
-for host in $(cat hosts); do
-   echo "Configuring network in $host..."
-   sshpass -e ssh ubuntu@${host} 'cd /home/ubuntu/nodes/ && ./create-network-config.py && cat ./50-cloud-init.yaml'
-   sshpass -e ssh ubuntu@${host} 'sudo cp /home/ubuntu/nodes/50-cloud-init.yaml /etc/netplan/50-cloud-init.yaml'
-   echo "Configuring docker in $host..."
-   sshpass -e ssh ubuntu@${host} '/home/ubuntu/nodes/nodeconfig-docker.sh'
-done
-
-for host in $(cat hosts); do
-   echo "Rebooting: $host"
-   sshpass -e ssh ubuntu@${host} 'sudo reboot'
+for line in $(cat hosts); do
+   ipaddress=$(echo $line | cut -d"," -f1)
+   role=$(echo $line | cut -d"," -f2)
+   echo "Rebooting: $ipaddress"
+   sshpass -e ssh ubuntu@${ipaddress} 'sudo reboot'
 done
 sleep 3m
 
-for host in $(cat hosts); do
-   echo "Processing host, stage 2: $host"
-   if [ $host == $MASTER_NODE_IP ]; then
-      echo "Configuring k8s master in $host..."
-      sshpass -e ssh ubuntu@${host} '/home/ubuntu/nodes/generate-master-token.sh'
-      scp -C ubuntu@${host}:/home/ubuntu/nodes/kube-token nodes/master-kube-token
-      sshpass -e ssh ubuntu@${host} '/home/ubuntu/nodes/nodeconfig-k8s-master.sh'
-      sshpass -e ssh ubuntu@${host} '/home/ubuntu/nodes/get-token-ca-cert.sh'
-      scp -C ubuntu@${host}:/home/ubuntu/nodes/discovery-token nodes/node-discovery-token
+for line in $(cat hosts); do
+   ipaddress=$(echo $line | cut -d"," -f1)
+   role=$(echo $line | cut -d"," -f2)
+   echo "Installing packages to $ipaddress..."
+   sshpass -e ssh ubuntu@${ipaddress} '/home/ubuntu/nodes/install-node-packages.sh'
+done
+
+for line in $(cat hosts); do
+   ipaddress=$(echo $line | cut -d"," -f1)
+   role=$(echo $line | cut -d"," -f2)
+   echo "Configuring network in $ipaddress..."
+   sshpass -e ssh ubuntu@${ipaddress} 'cd /home/ubuntu/nodes/ && ./create-network-config.py && cat ./50-cloud-init.yaml'
+   sshpass -e ssh ubuntu@${ipaddress} 'sudo cp /home/ubuntu/nodes/50-cloud-init.yaml /etc/netplan/50-cloud-init.yaml'
+   echo "Configuring docker in $ipaddress..."
+   sshpass -e ssh ubuntu@${ipaddress} '/home/ubuntu/nodes/nodeconfig-docker.sh'
+done
+
+for line in $(cat hosts); do
+   ipaddress=$(echo $line | cut -d"," -f1)
+   role=$(echo $line | cut -d"," -f2)
+   echo "Rebooting: $ipaddress"
+   sshpass -e ssh ubuntu@${ipaddress} 'sudo reboot'
+done
+sleep 3m
+
+for line in $(cat hosts); do
+   ipaddress=$(echo $line | cut -d"," -f1)
+   role=$(echo $line | cut -d"," -f2)
+   echo "Processing host, stage 2: $ipaddress"
+   if [ $role == 'master' ]; then
+      echo "Configuring k8s master in $ipaddress..."
+      sshpass -e ssh ubuntu@${ipaddress} '/home/ubuntu/nodes/generate-master-token.sh'
+      scp -C ubuntu@${ipaddress}:/home/ubuntu/nodes/kube-token nodes/master-kube-token
+      sshpass -e ssh ubuntu@${ipaddress} '/home/ubuntu/nodes/nodeconfig-k8s-master.sh'
+      sshpass -e ssh ubuntu@${ipaddress} '/home/ubuntu/nodes/get-token-ca-cert.sh'
+      scp -C ubuntu@${ipaddress}:/home/ubuntu/nodes/discovery-token nodes/node-discovery-token
    else
-      echo "Configuring k8s worker in $host..."
-      sshpass -e scp -C nodes/master-kube-token ubuntu@${host}:/home/ubuntu/nodes/kube-token
-      sshpass -e scp -C nodes/node-discovery-token ubuntu@${host}:/home/ubuntu/nodes/discovery-token
-      sshpass -e ssh ubuntu@${host} '/home/ubuntu/nodes/nodeconfig-k8s-worker.sh'
+      echo "Configuring k8s worker in $ipaddress..."
+      sshpass -e scp -C nodes/master-kube-token ubuntu@${ipaddress}:/home/ubuntu/nodes/kube-token
+      sshpass -e scp -C nodes/node-discovery-token ubuntu@${ipaddress}:/home/ubuntu/nodes/discovery-token
+      sshpass -e ssh ubuntu@${ipaddress} '/home/ubuntu/nodes/nodeconfig-k8s-worker.sh'
    fi
 done

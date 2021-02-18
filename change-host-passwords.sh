@@ -16,12 +16,16 @@ fi
 
 IFS=$'\n'       # make newlines the only separator, IFS means 'internal field separator'
 set -f          # disable globbing
-for host in $(cat hosts); do
-  echo "Logging in for the first time to $host..."
-  # Use -oStrictHostKeyChecking=no to automatically accept host keys when
-  #   logging in for the first time...
-  sshpass -e ssh -oStrictHostKeyChecking=no ubuntu@${host} 'uptime'
-  sshpass -e ssh ubuntu@${host} "echo 'ubuntu:${NEW_SSHPASS}' | sudo chpasswd"
+for line in $(cat hosts); do
+   ipaddress=$(echo $line | cut -d"," -f1)
+   role=$(echo $line | cut -d"," -f2)
+   echo "Logging in for the first time to $ipaddress..."
+   # Remove host ip address from known_hosts in set up machine
+   ssh-keygen -f "/home/${USERNAME}/.ssh/known_hosts" -R $ipaddress
+   # Use -oStrictHostKeyChecking=no to automatically accept host keys when
+   #   (assume) logging in for the first time...
+   sshpass -e ssh -oStrictHostKeyChecking=no ubuntu@${ipaddress} 'uptime'
+   sshpass -e ssh ubuntu@${ipaddress} "echo 'ubuntu:${NEW_SSHPASS}' | sudo chpasswd"
 done
 
 if [ ! -f ./.password_changed ]; then
@@ -30,8 +34,10 @@ fi
 
 export SSHPASS=${NEW_SSHPASS}
 
-for host in $(cat hosts); do
-   echo "Rebooting (1): $host"
-   sshpass -e ssh ubuntu@${host} 'sudo reboot'
+for line in $(cat hosts); do
+   ipaddress=$(echo $line | cut -d"," -f1)
+   role=$(echo $line | cut -d"," -f2)
+   echo "Rebooting (1): $ipaddress"
+   sshpass -e ssh ubuntu@${ipaddress} 'sudo reboot'
 done
 echo 'Password change completed, log back in after 5 minutes...'
