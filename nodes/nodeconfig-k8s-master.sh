@@ -19,3 +19,6 @@ kubectl apply -f calico.yaml
 kubectl get nodes
 HOST_IP=$(ifconfig eth0 | egrep -o 'inet [0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' | cut -d' ' -f2)
 echo $HOST_IP
+
+# metrics-server service
+kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
