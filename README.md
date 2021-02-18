@@ -35,7 +35,7 @@ ssh_pwauth: true
   c. Copies (using `scp`)`nodes` folder contents to RPi4s
   d. Installs packages (docker, k8s, Python packages)
   e. Configures network
-  f. Configures k8s master and worker nodes and joins worker node(s) to master node.
+  f. Configures k8s master and worker nodes and joins worker node(s) to master node.  
 
 Checks on completion (on master node):
 1. If successful, you should be able to SSH into the k8s master node without a password from the setup machine.
