@@ -26,10 +26,11 @@ ssh_pwauth: true
 6. Insert micro-SD cards and boot up RPi4s.
 7. On setup machine, create a `hosts` file using `hosts-template`.
 8. Log in to each RPi4, and using `ip address show` at the command line, get `eth0` IP addresses of RPi4s.
-9. Write IP addresses in `hosts` file, one IP address per line (use `hosts-template` as template) and pick which one you want to be the k8s master node. (Note this down for the `.env` below.)
-10. On setup machine, edit `.env` file (use `.env-template` as template) and add key info, including IP address of master node.
-11. On setup machine, Run `change-host-passwords.sh` to update default Ubuntu passwords on RPi4's
-12. Run configuration script, `config-hosts.sh`, to configure RPi4's. `config-hosts.sh` sets up each RPi4.
+9. Reserve the IP adddress for each RPi4 in your router management software / web interface. This enables each RPi4 to get the same IP address everytime it reboots and requests an IP address through DHCP. 
+10. Using `hosts-template` as template, create a file called `hosts`. Write the IP addresses in `hosts` file, one IP address per line (use `hosts-template` as template) and pick which one you want to be k8s master and worker nodes. (Note down the master node IP address for the `.env` file below.)
+11. On setup machine, edit `.env` file (use `.env-template` as template) and add key info, including IP address of master node.
+12. On setup machine, make sure there is no `.password_changed` file, delete it if it exists. Run `change-host-passwords.sh` to update default Ubuntu passwords on RPi4's.
+13. Run configuration script, `config-hosts.sh`, to configure RPi4's. `config-hosts.sh` sets up each RPi4.
 
 `config-hosts.sh`:
 1. Updates hostnames to identify master and worker nodes
