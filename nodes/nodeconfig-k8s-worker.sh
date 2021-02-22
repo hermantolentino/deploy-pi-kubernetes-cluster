@@ -2,6 +2,7 @@
 
 source /home/ubuntu/nodes/.env
 
+MASTER_NODE_IP=$(cat /home/ubuntu/nodes/master-node-ip)
 sudo cp /home/ubuntu/nodes/k8s.conf /etc/sysctl.d/k8s.conf
 sudo sysctl --system
 sudo kubeadm config images pull
