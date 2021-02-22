@@ -11,34 +11,18 @@
 ## Initial steps
 1. Download Raspberry Pi imager (balenaEtcher or Raspberry Pi imager)
 2. Write `64-bit Ubuntu 20.04 LTS` image onto micro-SD card(s)
-3. Edit `user-data` files in micro-SD cards:
-```YAML
-chpasswd:
-  expire: false
-  list:
-  - ubuntu:ubuntu
-
- # Enable password authentication with the SSH daemon
-ssh_pwauth: true
-```
-4. Git clone this repository on setup machine, then `cd` to the repository folder.
-5. Generate SSH key pair with `generate-ssh-key-pair.sh` (This creates private and public keys in your Linux home `.ssh` folder. The configuration script will upload SSH public key to RPi4s.)
-6. Insert micro-SD cards and boot up RPi4s.
-7. On setup machine, create a `hosts` file using `hosts-template`.
-8. Log in to each RPi4, and using `ip address show` at the command line, get `eth0` IP addresses of RPi4s.
-9. Reserve the IP adddress for each RPi4 in your router management software / web interface. This enables each RPi4 to get the same IP address everytime it reboots and requests an IP address through DHCP. 
-10. Using `hosts-template` as template, create a file called `hosts`. Write the IP addresses in `hosts` file, one IP address per line (use `hosts-template` as template) and pick which one you want to be k8s master and worker nodes. (Note down the master node IP address for the `.env` file below.)
-11. On setup machine, edit `.env` file (use `.env-template` as template) and add key info, including IP address of master node.
-12. On setup machine, make sure there is no `.password_changed` file, delete it if it exists. Run `change-host-passwords.sh` to update default Ubuntu passwords on RPi4's.
-13. Run configuration script, `config-hosts.sh`, to configure RPi4's. `config-hosts.sh` sets up each RPi4.
-
-`config-hosts.sh`:
-1. Updates hostnames to identify master and worker nodes
-2. Installs SSH public key to each RPi4
-3. Copies (using `scp`) setup machine `nodes` folder contents to RPi4s
-4. Installs packages (docker, k8s, Python packages)
-5. Configures network for RPi4's
-6. Configures k8s master and worker nodes and joins worker node(s) to master node.
+3. Insert micro-SD cards and boot up RPi4s.
+4. Reserve the IP adddress for each RPi4 in your router management software / web interface. This enables each RPi4 to get the same IP address everytime it reboots and requests an IP address through DHCP.
+5. You can also obtain the gateway IP address from your router (needed for Step 8).
+6. Git clone this repository on setup machine, then `cd` to the repository folder `deploy-pi-kubernetes-cluster`.
+7. Using `hosts-template` as template, create a file called `hosts`. Write the IP addresses in `hosts` file, one IP address per line (use `hosts-template` as template) and pick which one you want to be k8s master and worker nodes. These are the IP addresses obtained by RPi4s from your router and should be identifiable through the label 'Raspberry Pi Trading Ltd'.
+8. Copy `.env-template` to `.env`. Open `.env` for editing and add key info.
+9. On setup machine, make sure there is no `.password_changed` file, delete it if it exists (`rm .password_changed`). Run `01-change-host-passwords.sh` to update default Ubuntu passwords on running RPi4's.
+10. Generate SSH key pair with the script `02a-generate-ssh-key-pair.sh`. (This creates private and public keys in your Linux home `.ssh` folder. Skip this if you already have generated a SSH key pair you will use for the cluster.)
+11. Run the script, `02b-upload-ssh-public-keys.sh`, to enable password-less SSH to master and worker nodes from the setup machine.
+12. *Note: Other cluster admins can clone the same repository on their accounts in the Linux setup machine and run Step 10 and Step 11.*
+13. Run configuration script, `03-config-hosts.sh`, to configure RPi4's. `config-hosts.sh` sets up each RPi4.
+14. Run configuration script, `04-configure-cluster.sh`, to configure k8s on the RPi4s.
 
 Checks on completion (on master node):
 1. If successful, you should be able to SSH into the k8s master node without a password from the setup machine.
