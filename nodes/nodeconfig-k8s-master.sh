@@ -12,16 +12,15 @@ if [ ! -f $HOME/.kube/config ]; then
     echo "$HOME/.kube/config does not exist..."
     mkdir -p $HOME/.kube
     sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
-    sudo chown $(id -u):$(id -g) $HOME/.kube/config
+    sudo chown -R $USER:$USER $HOME/.kube
 else
     echo "$HOME/.kube/config exists..."
 fi
 export KUBECONFIG=/etc/kubernetes/admin.conf
+
 # Deploy pod network
 # Use calico network driver
-curl https://docs.projectcalico.org/manifests/calico.yaml -O
-kubectl apply -f calico.yaml
-kubectl get nodes
+kubectl apply -f https://docs.projectcalico.org/manifests/calico.yaml
 
 # metrics-server service
 kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
