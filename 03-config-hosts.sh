@@ -22,7 +22,7 @@ for line in $(cat hosts); do
    ssh-keygen -f "/home/${USERNAME}/.ssh/known_hosts" -R $ipaddress
    # Use -oStrictHostKeyChecking=no to automatically accept host keys when
    #   (assume) logging in for the first time...
-   sshpass -e ssh -oStrictHostKeyChecking=no ubuntu@${ipaddress} 'uptime'
+   ssh -oStrictHostKeyChecking=no ubuntu@${ipaddress} 'uptime'
 done
 
 WORKER_COUNTER=0
@@ -33,19 +33,19 @@ for line in $(cat hosts); do
 
    echo "Processing host, stage 1: $ipaddress"
    echo "Setting hostname for host: $ipaddress"
-   sshpass -e ssh ubuntu@${ipaddress} "touch /home/ubuntu/nodes/hostname"
+   ssh ubuntu@${ipaddress} "touch /home/ubuntu/nodes/hostname"
    if [ $role == 'master' ]; then
       ((MASTER_COUNTER++))
       printf -v MASTER '%03d' $MASTER_COUNTER
-      sshpass -e ssh ubuntu@${ipaddress} "echo 'k8s-master-$MASTER' > /home/ubuntu/nodes/hostname"
-      sshpass -e ssh ubuntu@${ipaddress} "sudo hostname k8s-master-$MASTER"
-      sshpass -e ssh ubuntu@${ipaddress} 'sudo cp /home/ubuntu/nodes/hostname /etc/hostname'
+      ssh ubuntu@${ipaddress} "echo 'k8s-master-$MASTER' > /home/ubuntu/nodes/hostname"
+      ssh ubuntu@${ipaddress} "sudo hostname k8s-master-$MASTER"
+      ssh ubuntu@${ipaddress} 'sudo cp /home/ubuntu/nodes/hostname /etc/hostname'
    else
       ((WORKER_COUNTER++))
       printf -v WORKER '%03d' $WORKER_COUNTER
-      sshpass -e ssh ubuntu@${ipaddress} "echo 'k8s-worker-$WORKER' > /home/ubuntu/nodes/hostname"
-      sshpass -e ssh ubuntu@${ipaddress} "sudo hostname k8s-worker-$WORKER"
-      sshpass -e ssh ubuntu@${ipaddress} 'sudo cp /home/ubuntu/nodes/hostname /etc/hostname'
+      ssh ubuntu@${ipaddress} "echo 'k8s-worker-$WORKER' > /home/ubuntu/nodes/hostname"
+      ssh ubuntu@${ipaddress} "sudo hostname k8s-worker-$WORKER"
+      ssh ubuntu@${ipaddress} 'sudo cp /home/ubuntu/nodes/hostname /etc/hostname'
    fi
 done
 
@@ -53,7 +53,7 @@ for line in $(cat hosts); do
    ipaddress=$(echo $line | cut -d"," -f1)
    role=$(echo $line | cut -d"," -f2)
    echo "Rebooting: $ipaddress"
-   sshpass -e ssh ubuntu@${ipaddress} 'sudo reboot'
+   ssh ubuntu@${ipaddress} 'sudo reboot'
 done
 sleep 3m
 
@@ -61,24 +61,24 @@ for line in $(cat hosts); do
    ipaddress=$(echo $line | cut -d"," -f1)
    role=$(echo $line | cut -d"," -f2)
    echo "Installing packages to $ipaddress..."
-   sshpass -e ssh ubuntu@${ipaddress} '/home/ubuntu/nodes/install-node-packages.sh'
+   ssh ubuntu@${ipaddress} '/home/ubuntu/nodes/install-node-packages.sh'
 done
 
 for line in $(cat hosts); do
    ipaddress=$(echo $line | cut -d"," -f1)
    role=$(echo $line | cut -d"," -f2)
    echo "Configuring network in $ipaddress..."
-   sshpass -e ssh ubuntu@${ipaddress} 'cd /home/ubuntu/nodes/ && ./create-network-config.py && cat ./50-cloud-init.yaml'
-   sshpass -e ssh ubuntu@${ipaddress} 'sudo cp /home/ubuntu/nodes/50-cloud-init.yaml /etc/netplan/50-cloud-init.yaml'
+   ssh ubuntu@${ipaddress} 'cd /home/ubuntu/nodes/ && ./create-network-config.py && cat ./50-cloud-init.yaml'
+   ssh ubuntu@${ipaddress} 'sudo cp /home/ubuntu/nodes/50-cloud-init.yaml /etc/netplan/50-cloud-init.yaml'
    echo "Configuring docker in $ipaddress..."
-   sshpass -e ssh ubuntu@${ipaddress} '/home/ubuntu/nodes/nodeconfig-docker.sh'
+   ssh ubuntu@${ipaddress} '/home/ubuntu/nodes/nodeconfig-docker.sh'
 done
 
 for line in $(cat hosts); do
    ipaddress=$(echo $line | cut -d"," -f1)
    role=$(echo $line | cut -d"," -f2)
    echo "Rebooting: $ipaddress"
-   sshpass -e ssh ubuntu@${ipaddress} 'sudo reboot'
+   ssh ubuntu@${ipaddress} 'sudo reboot'
 done
 echo 'Wait for 3 minutes before running next configuration script...'
 sleep 3m

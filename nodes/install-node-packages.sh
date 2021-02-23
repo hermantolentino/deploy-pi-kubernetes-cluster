@@ -4,6 +4,9 @@ sudo apt-get update
 sudo apt-get upgrade -y
 sudo apt-get install -y apt-transport-https ca-certificates curl gnupg-agent software-properties-common net-tools
 
+# Test for package installation as network issues might prevent correct package installation.
+#    Incorrect package installation will have severe downstream process impact.
+
 # Docker packages
 PKG_OK=0
 until [ $PKG_OK == 1 ]; do
