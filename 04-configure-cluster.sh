@@ -15,12 +15,14 @@ for line in $(cat hosts); do
    echo "Processing host, stage 2: $ipaddress"
    if [ $role == 'master' ]; then
       echo "Configuring k8s master in $ipaddress..."
+      # kube-token
       sshpass -e ssh ubuntu@${ipaddress} '/home/ubuntu/nodes/generate-master-token.sh'
       sshpass -e scp -C ubuntu@${ipaddress}:/home/ubuntu/nodes/kube-token nodes/master-kube-token
       initfile=$(readlink -f nodes/master-kube-token)
       grep -qxF $initfile $(pwd)/initfiles || echo $initfile >> $(pwd)/initfiles
       sshpass -e ssh ubuntu@${ipaddress} '/home/ubuntu/nodes/nodeconfig-k8s-master.sh'
       sshpass -e ssh ubuntu@${ipaddress} '/home/ubuntu/nodes/get-token-ca-cert.sh'
+      # discovery-token
       sshpass -e scp -C ubuntu@${ipaddress}:/home/ubuntu/nodes/discovery-token nodes/node-discovery-token
       initfile=$(readlink -f nodes/node-discovery-token)
       grep -qxF $initfile $(pwd)/initfiles || echo $initfile >> $(pwd)/initfiles
@@ -33,3 +35,5 @@ for line in $(cat hosts); do
 done
 sleep 3m
 sshpass -e ssh ubuntu@$(cat nodes/master-node-ip) "kubectl get nodes"
+sshpass -e ssh ubuntu@$(cat nodes/master-node-ip) "kubectl get pods"
+sshpass -e ssh ubuntu@$(cat nodes/master-node-ip) "kubectl get services"
