@@ -24,7 +24,7 @@ for line in $(cat hosts); do
    ssh-keygen -f "/home/${USERNAME}/.ssh/known_hosts" -R $ipaddress
    # Use -oStrictHostKeyChecking=no to automatically accept host keys when
    #   (assume) logging in for the first time...
-   $(pwd)/password-change-expect.ex $HOST_USERNAME $OLD_SSHPASS $ipaddress $NEW_SSHPASS
+   $(pwd)/password-change-expect.exp $HOST_USERNAME $OLD_SSHPASS $ipaddress $NEW_SSHPASS
    #sshpass -e ssh -t -t -oStrictHostKeyChecking=no ubuntu@${ipaddress} "echo 'ubuntu:${NEW_SSHPASS}' | sudo chpasswd"
 done
 
