@@ -1,1 +1,3 @@
 /home/herman/workspace/stage/deploy-pi-kubernetes-cluster/.password_changed
+/home/herman/workspace/stage/deploy-pi-kubernetes-cluster/nodes/master-kube-token
+/home/herman/workspace/stage/deploy-pi-kubernetes-cluster/nodes/node-discovery-token

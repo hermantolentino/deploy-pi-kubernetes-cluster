@@ -5,8 +5,8 @@
 ## Hardware
 1. At least 2 Raspberry Pi 4 (RPi4) single board computers with 4GB memory
 2. 64GB micro-SD cards for RPi4's
-3. 4-port network switch, 1-foot Cat6 patch cables
-4. Computer running Ubuntu Linux (setup machine) with SD card reader (connected to the same network as RPi4's)
+3. 4-port network switch, 1-foot Cat6 patch cables fro each Pi4
+4. Computer running Ubuntu Linux setup machine to run the node setup and cluster configuration scripts) with SD card reader connected to the same network as RPi4's. (You can also write the Ubuntu image to micro-SD cards using an SD card reader in a MacOS or Windows machine.)
 
 ## Initial steps
 1. Download Raspberry Pi imager (balenaEtcher or Raspberry Pi imager)
