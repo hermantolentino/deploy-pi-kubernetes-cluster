@@ -79,6 +79,6 @@ for line in $(cat hosts); do
    role=$(echo $line | cut -d"," -f2)
    echo "Rebooting: $ipaddress"
    sshpass -e ssh ubuntu@${ipaddress} 'sudo reboot'
-   echo 'Wait for 3 minutes before running next configuration script...'
 done
+echo 'Wait for 3 minutes before running next configuration script...'
 sleep 3m
