@@ -25,7 +25,6 @@ for line in $(cat hosts); do
    # Use -oStrictHostKeyChecking=no to automatically accept host keys when
    #   (assume) logging in for the first time...
    $(pwd)/password-change-expect.exp $HOST_USERNAME $OLD_SSHPASS $ipaddress $NEW_SSHPASS
-   #sshpass -e ssh -t -t -oStrictHostKeyChecking=no ubuntu@${ipaddress} "echo 'ubuntu:${NEW_SSHPASS}' | sudo chpasswd"
 done
 
 if [ ! -f ./.password_changed ]; then
