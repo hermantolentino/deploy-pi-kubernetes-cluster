@@ -1,15 +1,18 @@
 #!/usr/bin/env bash
 
+source .env
+
 if [ ! -f $(which sshpass) ]; then
   echo 'Please install sshpass and run the script again.\nUbuntu: sudo apt install sshpass -y' && exit 1
 fi
 
 IFS=$'\n'  # make newlines the only separator, IFS means 'internal field separator'
 set -f     # disable globbing
+
 for line in $(cat hosts); do
    ipaddress=$(echo $line | cut -d"," -f1)
    role=$(echo $line | cut -d"," -f2)
-   if [ $role == 'master']; then
+   if [ $role == 'master' ]; then
       echo $ipaddress > $(pwd)/nodes/master-node-ip
    fi
    echo "Logging in for the first time to $ipaddress..."
@@ -17,7 +20,7 @@ for line in $(cat hosts); do
    role=$(echo $line | cut -d"," -f2)
    # Remove host ip address from known_hosts in set up machine
    ssh-keygen -f "/home/${USERNAME}/.ssh/known_hosts" -R $ipaddress
-   ssh ubuntu@${ipaddress} 'uptime'
+   ssh -oStrictHostKeyChecking=no ubuntu@${ipaddress} 'uptime'
 done
 
 WORKER_COUNTER=0
@@ -42,34 +45,29 @@ for line in $(cat hosts); do
       ssh ubuntu@${ipaddress} "sudo hostname k8s-worker-$WORKER"
       ssh ubuntu@${ipaddress} 'sudo cp /home/ubuntu/nodes/hostname /etc/hostname'
    fi
+   ssh ubuntu@${ipaddress} "echo 'hostname:' && cat /etc/hostname"
 done
 
+echo 'Rebooting nodes...'
 for line in $(cat hosts); do
    ipaddress=$(echo $line | cut -d"," -f1)
    role=$(echo $line | cut -d"," -f2)
    echo "Rebooting: $ipaddress"
    ssh ubuntu@${ipaddress} 'sudo reboot'
 done
-echo 'Password change completed, will resume script execution after 2 minutes...'
+
+echo 'Hostname update completed, will resume script execution after 2 minutes...'
 ./countdown 00:02:00
 
-for line in $(cat hosts); do
-   ipaddress=$(echo $line | cut -d"," -f1)
-   role=$(echo $line | cut -d"," -f2)
-   echo "Installing packages to $ipaddress..."
-   ssh ubuntu@${ipaddress} '/home/ubuntu/nodes/install-node-packages.sh'
-done
+echo 'Check if nodes have rebooted...'
+parallel-ssh -i -H "$hosts" 'echo "Hello, world" from $(hostname)'
 
-for line in $(cat hosts); do
-   ipaddress=$(echo $line | cut -d"," -f1)
-   role=$(echo $line | cut -d"," -f2)
-   echo "Configuring network in $ipaddress..."
-   ssh ubuntu@${ipaddress} 'cd /home/ubuntu/nodes/ && ./create-network-config.py && cat ./50-cloud-init.yaml'
-   ssh ubuntu@${ipaddress} 'sudo cp /home/ubuntu/nodes/50-cloud-init.yaml /etc/netplan/50-cloud-init.yaml'
-   echo "Configuring docker in $ipaddress..."
-   ssh ubuntu@${ipaddress} '/home/ubuntu/nodes/nodeconfig-docker.sh'
-done
+echo 'Setting up required packages...'
+hosts=$(cat ipaddresses)
+parallel-ssh -i -t 0 -H "$hosts" '/home/ubuntu/nodes/install-node-packages.sh'
+parallel-ssh -i -t 0 -H "$hosts" '/home/ubuntu/nodes/nodeconfig-docker.sh'
 
+echo 'Rebooting nodes...'
 for line in $(cat hosts); do
    ipaddress=$(echo $line | cut -d"," -f1)
    role=$(echo $line | cut -d"," -f2)

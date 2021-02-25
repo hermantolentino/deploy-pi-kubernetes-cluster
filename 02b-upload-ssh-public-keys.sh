@@ -3,6 +3,9 @@
 source .env
 export SSHPASS=${NEW_SSHPASS}
 
+IFS=$'\n' # make newlines the only separator, IFS means 'internal field separator'
+set -f    # disable globbing
+
 for line in $(cat hosts); do
    ipaddress=$(echo $line | cut -d"," -f1)
    role=$(echo $line | cut -d"," -f2)

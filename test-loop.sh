@@ -2,11 +2,17 @@
 
 source .env
 
-IFS=$'\n'       # make newlines the only separator
-set -f          # disable globbing
+IFS=$'\n' # make newlines the only separator, IFS means 'internal field separator'
+set -f    # disable globbing
+
+:> ipaddresses
 for line in $(cat hosts); do
-  ip=$(echo $line | cut -d"," -f1)
+  ipaddress=$(echo $line | cut -d"," -f1)
   role=$(echo $line | cut -d"," -f2)
-  echo "line: $ip $role"
+  echo "line: $ipaddress $role"
+  echo "ubuntu@$ipaddress" >> ipaddresses
 done
-./countdown 00:03:00
+cat ipaddresses
+hosts=$(cat ipaddresses)
+echo $hosts
+parallel-ssh -i -h ipaddresses 'echo "Hello, world"'

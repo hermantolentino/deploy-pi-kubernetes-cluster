@@ -2,20 +2,30 @@
 
 source ./.env
 
+IFS=$'\n'       # make newlines the only separator, IFS means 'internal field separator'
+set -f          # disable globbing
+
+if [ ! -f $(which sshpass) ]; then
+   echo 'Please install sshpass and run the script again.\nUbuntu: sudo apt install sshpass -y' && exit 1
+else
+   echo 'sshpass is installed'
+fi
+if [ ! -f $(which parallel-ssh) ]; then
+   echo 'Please install parallel-ssh and run the script again.\nUbuntu: sudo apt install parallel-ssh -y' && exit 1
+else
+   echo 'parallel-ssh is installed.'
+fi
+
 if [ ! -f ./.password_changed ]; then
-   echo 'Host passwords have *not* been changed...'
+   echo 'Host passwords have *not* been changed.'
    export SSHPASS=${OLD_SSHPASS}
 else
    echo 'Host passwords have been changed...'
    export SSHPASS=${NEW_SSHPASS}
    exit 0
 fi
-if [ ! -f $(which sshpass) ]; then
-  echo 'Please install sshpass and run the script again.\nUbuntu: sudo apt install sshpass -y' && exit 1
-fi
 
-IFS=$'\n'       # make newlines the only separator, IFS means 'internal field separator'
-set -f          # disable globbing
+:> ipaddresses
 for line in $(cat hosts); do
    ipaddress=$(echo $line | cut -d"," -f1)
    role=$(echo $line | cut -d"," -f2)
@@ -25,6 +35,7 @@ for line in $(cat hosts); do
    # Use -oStrictHostKeyChecking=no to automatically accept host keys when
    #   (assume) logging in for the first time...
    $(pwd)/password-change-expect.exp $HOST_USERNAME $OLD_SSHPASS $ipaddress $NEW_SSHPASS
+   echo "ubuntu@$ipaddress" >> ipaddresses
 done
 
 if [ ! -f ./.password_changed ]; then

@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+export DEBIAN_FRONTEND='noninteractive'
+
+echo 'Begin package set up...'
+
 sudo apt-get update
 sudo apt-get upgrade -y
 sudo apt-get install -y apt-transport-https ca-certificates curl gnupg-agent software-properties-common net-tools
@@ -8,6 +12,7 @@ sudo apt-get install -y apt-transport-https ca-certificates curl gnupg-agent sof
 #    Incorrect package installation will have severe downstream process impact.
 
 # Docker packages
+echo 'Installing docker packages...'
 PKG_OK=0
 until [ $PKG_OK == 1 ]; do
     curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
@@ -18,6 +23,7 @@ until [ $PKG_OK == 1 ]; do
 done
 
 # Kubernetes packages
+echo 'Installing kubernetes packages...'
 PKG_OK=0
 until [ $PKG_OK == 1 ]; do
     curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
@@ -29,12 +35,14 @@ done
 sudo apt-mark hold kubelet kubeadm kubectl
 
 # Python packages
+echo 'Installing Python packages...'
 sudo apt-get install -y python3 python3-pip
 sudo apt-get autoremove -y
 sudo pip3 install pyyaml python-dotenv netifaces
 
 # Helm install
 # define what Helm version and where to install:
+echo 'Installing helm...'
 export HELM_VERSION=v3.0.2
 export HELM_INSTALL_DIR=/usr/local/bin
 # download the binary and get into place:
@@ -47,3 +55,10 @@ helm version
 
 # autoremove
 sudo apt-get autoremove -y
+
+# set up network
+echo 'Setting up network...'
+cd /home/ubuntu/nodes/ && ./create-network-config.py && cat ./50-cloud-init.yaml
+sudo cp /home/ubuntu/nodes/50-cloud-init.yaml /etc/netplan/50-cloud-init.yaml
+
+echo 'Package set up complete...'
