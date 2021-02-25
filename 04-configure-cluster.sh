@@ -1,8 +1,5 @@
 #!/usr/bin/env bash
 
-source .env
-export SSHPASS=${NEW_SSHPASS}
-
 for line in $(cat hosts); do
    ipaddress=$(echo $line | cut -d"," -f1)
    role=$(echo $line | cut -d"," -f2)
@@ -36,7 +33,20 @@ for line in $(cat hosts); do
       ssh ubuntu@${ipaddress} '/home/ubuntu/nodes/nodeconfig-k8s-worker.sh'
    fi
 done
-sleep 3m
-ssh ubuntu@$(cat nodes/master-node-ip) "kubectl get nodes"
-ssh ubuntu@$(cat nodes/master-node-ip) "kubectl get pods"
-ssh ubuntu@$(cat nodes/master-node-ip) "kubectl get services"
+echo 'Finishing up cluster set up, will resume script execution after 2 minutes...'
+./countdown 00:02:00
+
+for line in $(cat hosts); do
+   ipaddress=$(echo $line | cut -d"," -f1)
+   role=$(echo $line | cut -d"," -f2)
+   ssh ubuntu@${ipaddress} 'sudo apt-get update'
+   ssh ubuntu@${ipaddress} 'sudo apt-get upgrade --yes'
+   ssh ubuntu@${ipaddress} 'sudo reboot'
+done
+echo 'Finishing up cluster set up, will resume script execution after 2 minutes...'
+./countdown 00:02:00
+
+ssh ubuntu@$(cat nodes/master-node-ip) "kubectl get nodes --all-namespaces"
+ssh ubuntu@$(cat nodes/master-node-ip) "kubectl get pods --all-namespaces"
+ssh ubuntu@$(cat nodes/master-node-ip) "kubectl get services --all-namespaces"
+echo 'You can log in to master node.'

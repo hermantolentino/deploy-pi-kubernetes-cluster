@@ -9,3 +9,4 @@ for line in $(cat hosts); do
   role=$(echo $line | cut -d"," -f2)
   echo "line: $ip $role"
 done
+./countdown 00:03:00

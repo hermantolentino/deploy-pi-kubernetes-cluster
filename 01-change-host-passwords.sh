@@ -42,5 +42,5 @@ for line in $(cat hosts); do
    echo "Rebooting Raspberry Pi  @$ipaddress"
    sshpass -e ssh ubuntu@${ipaddress} 'sudo reboot'
 done
-echo 'Password change completed, log back in after 3 minutes...'
-sleep 3m
+echo 'Password change completed, continue with next script after 2 minutes...'
+./countdown 00:02:00

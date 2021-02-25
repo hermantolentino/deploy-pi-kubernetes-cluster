@@ -1,14 +1,11 @@
 #!/usr/bin/env bash
-source ./.env
-
-export SSHPASS=${NEW_SSHPASS}
 
 if [ ! -f $(which sshpass) ]; then
   echo 'Please install sshpass and run the script again.\nUbuntu: sudo apt install sshpass -y' && exit 1
 fi
 
-IFS=$'\n'       # make newlines the only separator, IFS means 'internal field separator'
-set -f          # disable globbing
+IFS=$'\n'  # make newlines the only separator, IFS means 'internal field separator'
+set -f     # disable globbing
 for line in $(cat hosts); do
    ipaddress=$(echo $line | cut -d"," -f1)
    role=$(echo $line | cut -d"," -f2)
@@ -20,9 +17,7 @@ for line in $(cat hosts); do
    role=$(echo $line | cut -d"," -f2)
    # Remove host ip address from known_hosts in set up machine
    ssh-keygen -f "/home/${USERNAME}/.ssh/known_hosts" -R $ipaddress
-   # Use -oStrictHostKeyChecking=no to automatically accept host keys when
-   #   (assume) logging in for the first time...
-   ssh -oStrictHostKeyChecking=no ubuntu@${ipaddress} 'uptime'
+   ssh ubuntu@${ipaddress} 'uptime'
 done
 
 WORKER_COUNTER=0
@@ -55,7 +50,8 @@ for line in $(cat hosts); do
    echo "Rebooting: $ipaddress"
    ssh ubuntu@${ipaddress} 'sudo reboot'
 done
-sleep 3m
+echo 'Password change completed, will resume script execution after 2 minutes...'
+./countdown 00:02:00
 
 for line in $(cat hosts); do
    ipaddress=$(echo $line | cut -d"," -f1)
@@ -80,5 +76,5 @@ for line in $(cat hosts); do
    echo "Rebooting: $ipaddress"
    ssh ubuntu@${ipaddress} 'sudo reboot'
 done
-echo 'Wait for 3 minutes before running next configuration script...'
-sleep 3m
+echo 'Node configuration completed, continue with cluster set up after 2 minutes...'
+./countdown 00:02:00

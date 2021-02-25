@@ -17,3 +17,12 @@ for line in $(cat hosts); do
    sshpass -e scp $(pwd)/.env ubuntu@${ipaddress}:/home/ubuntu/nodes/.env
    sshpass -e ssh ubuntu@${ipaddress} 'ls -la /home/ubuntu/nodes'
 done
+
+for line in $(cat hosts); do
+   ipaddress=$(echo $line | cut -d"," -f1)
+   role=$(echo $line | cut -d"," -f2)
+   echo "Rebooting host: $ipaddress"
+   sshpass -e ssh ubuntu@${ipaddress} 'sudo reboot'
+done
+echo 'Password change completed, continue with next script after 2 minutes...'
+./countdown 00:02:00
