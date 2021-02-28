@@ -40,6 +40,9 @@ sudo apt-get install -y python3 python3-pip
 sudo apt-get autoremove -y
 sudo pip3 install pyyaml python-dotenv netifaces
 
+# NFS packages
+sudo apt-get install nfs-common nfs-kernel-server -y
+
 # Helm install
 # define what Helm version and where to install:
 echo 'Installing helm...'

@@ -1,0 +1,1 @@
+UUID="XXXX" /srv/nfs auto nosuid,nodev,nofail,noatime 0 0
