@@ -23,8 +23,9 @@
 12. *Note: Other cluster admins can clone the same repository on their accounts in the Linux setup machine and run Step 10 and Step 11.*
 13. Run configuration script, `03-config-hosts.sh`, to configure RPi4's. `config-hosts.sh` sets up each RPi4.
 14. Run configuration script, `04-configure-cluster.sh`, to configure k8s on the RPi4s.
+15. Optional: If you attach a high-capacity USB hard drive to the master node, log in to the master node, run `blkid` to get the device name and device UUID. In the setup machine, fill in the correct info for the file `nfs-device-name` in the `nodes` folder, then run configuration script, `05-configure-cluster-nfs.sh`, to configure cluster NFS on the RPi4s.
 
 Checks on completion (on master node):
 1. If successful, you should be able to SSH into the k8s master node without a password from the setup machine.
-2. `kubectl get nodes` should show k8s cluster ready for use
+2. `kubectl get pods --all-namespaces` should show k8s cluster ready for use
 3. `kubectl cluster-info` provides info on running clusters
