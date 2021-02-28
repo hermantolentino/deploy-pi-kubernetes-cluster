@@ -11,6 +11,4 @@ if [ ! -f $KEYFILENAME ]; then
 else
     echo "Key pair [ ${KEYNAME} ] exists."
     cat $KEYFILENAME.pub
-    #rm $KEYFILENAME && echo "$KEYFILENAME deleted."
-    #rm ${KEYFILENAME}.pub && echo "${KEYFILENAME}.pub deleted."
 fi
