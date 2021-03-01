@@ -59,3 +59,7 @@ for line in $(cat hosts); do
 done
 echo 'Finishing up NFS set up, check back after 2 minutes...'
 ./countdown 00:02:00
+
+echo 'Check if nodes have rebooted...'
+hosts=$(cat ipaddresses)
+parallel-ssh -i -H "$hosts" 'echo "Hello, world!" from $(hostname)'
