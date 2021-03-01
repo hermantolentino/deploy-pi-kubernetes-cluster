@@ -60,6 +60,10 @@ done
 echo 'Finishing up cluster set up, will resume script execution after 2 minutes...'
 ./countdown 00:02:00
 
+echo 'Check if nodes have rebooted...'
+hosts=$(cat ipaddresses)
+parallel-ssh -i -H "$hosts" 'echo "Hello, world!" from $(hostname)'
+
 ssh ubuntu@$(cat nodes/master-node-ip) "kubectl get nodes --all-namespaces"
 ssh ubuntu@$(cat nodes/master-node-ip) "kubectl get pods --all-namespaces"
 ssh ubuntu@$(cat nodes/master-node-ip) "kubectl get services --all-namespaces"
